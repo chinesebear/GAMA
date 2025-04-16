@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4" style="min-height: 100vh; display: flex; flex-direction: column;">
+    <div class="row" style="flex: 1;">
+        <!-- 左侧功能区 -->
+        <div class="col-md-3 d-flex flex-column" style="height: 100vh; padding-top: 20px;">
+            <!-- 选择历史人物容器 -->
+            <div class="card mb-5">
+                <div class="card-body">
+                    <h5 class="card-title">选择历史人物</h5>
+                    <select id="figure" class="form-select mb-3" style="
+                        padding: 12px;
+                        border-radius: 8px;
+                        border: 1px solid #ced4da;
+                        background-color: #f8f9fa;
+                        font-size: 16px;
+                        transition: all 0.3s ease;
+                    ">
+                        {% for figure in historical_figures %}
+                            <option value="{{ figure.id }}">{{ figure.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- 一键清除记忆容器 -->
+            <!-- 一键清除记忆容器 -->
+            <div class="card mb-5">
+                <div class="card-body">
+                    <h5 class="card-title">一键清除记忆</h5>
+                    <div class="d-flex flex-wrap gap-4 mb-3">
+                        {% for figure in historical_figures %}
+                            <button class="btn btn-outline-danger btn-sm clear-memory-btn" data-figure-id="{{ figure.id }}" style="flex: 1 0 30%; margin-bottom: 10px;">
+                                清除 {{ figure.name }} 的记忆
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 超级思维容器 -->
+            <div class="card mb-5">
+                <div class="card-body">
+                    <h5 class="card-title">超级思维</h5>
+                    <button id="superMindBtn" class="btn btn-warning w-100 mb-3">启动超级思维</button>
+                </div>
+            </div>
+
+            <!-- 隐私保护容器 -->
+            <div class="card mb-5">
+                <div class="card-body">
+                    <h5 class="card-title">隐私保护</h5>
+                    <button id="privacyProtectBtn" class="btn btn-info w-100">
+                        <i class="fas fa-shield-alt"></i> 隐私保护
+                    </button>
+                    <small class="text-muted">点击以保护您的隐私数据。</small>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 右侧对话区 -->
+        <div class="col-md-8 d-flex flex-column">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title" id="conversationTitle">与历史人物对话</h5> <!-- 添加ID -->
+
+                    <!-- 输入框区域 -->
+                    <div class="input-group mb-3">
+                        <input type="text" id="question" class="form-control" placeholder="请输入你的问题..." />
+                        <button id="askBtn" class="btn btn-primary">提问</button>
+                    </div>
+
+                    <!-- 加载动画 -->
+                    <div id="loading" class="text-center my-3" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                        <p class="mt-2">AI 正在思考中...</p>
+                    </div>
+
+                    <!-- 对话记录 -->
+                    <h5 class="card-title mt-4">对话记录</h5>
+                    <div id="conversation" class="border p-3" style="flex-grow: 1; overflow-y: auto; background-color: #f8f9fa;">
+                        <!-- 对话内容将动态加载 -->
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    let superMindActive = false; // 是否启用超级思维
+    function getResponderName() {
+    if (superMindActive) {
+        return "超级思维"; // 超级思维模式
+    } else {
+        const selectedFigure = $('#figure option:selected').text(); // 获取选中的历史人物名称
+        return selectedFigure || "AI"; // 默认显示为 AI
+    }
+}
+
+    $(document).ready(function() {
+        // 状态变量：是否启用超级思维
+        let isSuperMindEnabled = false;
+
+        // 提问按钮点击事件
+        $('#askBtn').click(function() {
+            let question = $('#question').val().trim();
+            if (!question) {
+                alert("请先输入问题");
+                return;
+            }
+
+            // 显示加载提示
+            $('#loading').show();
+
+            // 根据是否启用超级思维，选择不同的 URL 和请求格式
+            let url = isSuperMindEnabled
+                ? "{% url 'chat:ask_difficult_question' %}"  // 超级思维模式
+                : "{% url 'chat:ask_question' %}";  // 普通模式
+
+            // 构造请求数据
+            let requestData;
+            let contentType;
+            if (isSuperMindEnabled) {
+                // 超级思维模式：发送 JSON 格式
+                requestData = JSON.stringify({
+                    question: question
+                });
+                contentType = 'application/json';
+            } else {
+                // 普通模式：发送表单格式
+                requestData = {
+                    question: question,
+                    figure_id: $('#figure').val(),  // 发送选择的历史人物 ID
+                };
+                contentType = 'application/x-www-form-urlencoded';
+            }
+
+            // 发送 AJAX 请求
+            $.ajax({
+                url: url,
+                type: "POST",
+                contentType: contentType,
+                data: requestData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'  // 确保传递 CSRF 令牌
+                },
+                success: function(response) {
+                    console.log("AJAX response:", response); // 添加此行以查看响应内容
+
+                    // 隐藏加载提示
+                    $('#loading').hide();
+
+                    if (response.status === 'success') {
+                        let answer = response.response;
+                        // 添加用户的问题
+                        $('#conversation').append(
+                            `<div class="d-flex justify-content-end mb-2">
+                                <div class="user-message">
+                                    <strong>你：</strong> ${question}
+                                </div>
+                            </div>`
+                        );
+                        // 添加AI的回答
+                        const responderName = getResponderName(); // 获取回答者名称
+                        $('#conversation').append(
+                            `<div class="d-flex justify-content-start mb-2">
+                                <div class="assistant-message">
+                                    <strong>${responderName}：</strong> ${answer}
+                                </div>
+                            </div>`
+                        );
+                        // 清空输入框
+                        $('#question').val('');
+                        // 自动滚动到最底部
+                        $('#conversation').scrollTop($('#conversation')[0].scrollHeight);
+                    } else {
+                        $('#conversation').append(
+                            `<div class="text-danger"><strong>错误：</strong> ${response.message || "未知错误"}</div><hr>`
+                        );
+                    }
+                },
+                error: function(xhr) {
+                    console.log("AJAX error:", xhr); // 添加此行以查看错误内容
+                    // 隐藏加载提示
+                    $('#loading').hide();
+
+                    $('#conversation').append(
+                        `<div class="text-danger"><strong>请求出错：</strong> ${xhr.responseText}</div><hr>`
+                    );
+                }
+            });
+        });
+
+        // 处理一键清除记忆按钮点击事件
+        $('.clear-memory-btn').click(function() {
+            if (!confirm("确定要清除与该历史人物的所有聊天记录吗？")) {
+                return;
+            }
+
+            let figure_id = $(this).data('figure-id');
+
+            $.ajax({
+                url: "{% url 'chat:clear_memory' %}",
+                type: "POST",
+                data: {
+                    figure_id: figure_id,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert(response.message);
+                        // 清除前端的聊天记录显示
+                        // 如果当前选择的历史人物被清除，则清空对话区
+                        let selectedFigureId = $('#figure').val();
+                        if (selectedFigureId == figure_id) {
+                            $('#conversation').empty();
+                        }
+                    } else {
+                        alert("记忆清除失败：" + (response.message || "未知错误"));
+                    }
+                },
+                error: function(xhr) {
+                    console.log("AJAX error:", xhr); // 添加此行以查看错误内容
+                    alert("请求出错：" + xhr.responseText);
+                }
+            });
+        });
+
+        // 超级思维按钮点击事件
+        const superMindBtn = document.getElementById("superMindBtn");
+        superMindBtn.addEventListener("click", function() {
+            // 切换超级思维状态
+            isSuperMindEnabled = !isSuperMindEnabled;
+
+            // 更新按钮样式和文本
+            if (isSuperMindEnabled) {
+                superMindBtn.classList.remove("btn-warning");
+                superMindBtn.classList.add("btn-success");
+                superMindBtn.innerText = "超级思维已启用";
+                // 禁用历史人物选择
+                $('#figure').prop('disabled', true);
+            } else {
+                superMindBtn.classList.remove("btn-success");
+                superMindBtn.classList.add("btn-warning");
+                superMindBtn.innerText = "超级思维";
+                // 启用历史人物选择
+                $('#figure').prop('disabled', false);
+            }
+        });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+
+        let isPrivacyEnabled = false; // 状态变量，默认未开启隐私保护
+
+        // 隐私保护按钮点击事件
+        $('#privacyProtectBtn').click(function() {
+            if (isPrivacyEnabled) {
+                // 恢复原始状态（关闭隐私保护）
+                $(this).html('<i class="fas fa-shield-alt"></i> 隐私保护');
+                $(this).removeClass('btn-success').addClass('btn-info');
+                isPrivacyEnabled = false;
+                console.log("隐私保护已关闭");
+            } else {
+                // 开启隐私保护
+                $(this).html('<i class="fas fa-shield-alt"></i> 已开启隐私保护');
+                $(this).removeClass('btn-info').addClass('btn-success');
+                isPrivacyEnabled = true;
+                console.log("隐私保护已开启");
+            }
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        let isSuperMindEnabled = false; // 状态变量：是否启用超级思维
+        const superMindBtn = document.getElementById("superMindBtn");
+        const conversationTitle = document.getElementById("conversationTitle"); // 获取标题元素
+
+        // 超级思维按钮点击事件
+        superMindBtn.addEventListener("click", function() {
+            // 切换超级思维状态
+            isSuperMindEnabled = !isSuperMindEnabled;
+
+            // 更新按钮样式和文本
+            if (isSuperMindEnabled) {
+                superMindBtn.classList.remove("btn-warning");
+                superMindBtn.classList.add("btn-success");
+                superMindBtn.innerText = "超级思维已启用";
+                $('#figure').prop('disabled', true); // 禁用历史人物选择
+                conversationTitle.innerText = "超级思维模式"; // 修改标题
+            } else {
+                superMindBtn.classList.remove("btn-success");
+                superMindBtn.classList.add("btn-warning");
+                superMindBtn.innerText = "超级思维";
+                $('#figure').prop('disabled', false); // 启用历史人物选择
+                conversationTitle.innerText = "发酵食品安全问答系统"; // 恢复标题
+            }
+        });
+    });
+</script>
+
+{% endblock %}  <!-- 确保这里闭合了 block -->

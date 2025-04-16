@@ -1,0 +1,144 @@
+<!-- chat/templates/chat/index.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<h1>与历史人物对话</h1>
+
+<div class="mb-3">
+    <label for="figure">选择历史人物：</label>
+    <select id="figure" class="form-control" style="width: 200px;">
+        {% for figure in historical_figures %}
+            <option value="{{ figure.id }}">{{ figure.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<!-- 添加一键清除记忆按钮 -->
+<div class="mb-3">
+    <label>一键清除记忆：</label>
+    <div>
+        {% for figure in historical_figures %}
+            <button class="btn btn-danger btn-sm clear-memory-btn" data-figure-id="{{ figure.id }}" style="margin: 2px;">
+                清除 {{ figure.name }} 的记忆
+            </button>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="mb-3">
+    <label for="question">请输入你的问题：</label>
+    <input type="text" id="question" class="form-control" style="width: 600px;" />
+</div>
+<button id="askBtn" class="btn btn-primary">提问</button>
+
+<div id="loading" class="text-info mt-3" style="display: none;">
+    <strong>AI 正在思考中...</strong> <span class="loader"></span>
+</div>
+
+<h3 class="mt-4">对话记录：</h3>
+<div id="conversation" class="border p-3" style="height: 400px; overflow-y: scroll; background-color: #f8f9fa;">
+    <!-- 对话内容将动态加载 -->
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#askBtn').click(function() {
+            let question = $('#question').val().trim();
+            let figure_id = $('#figure').val();
+            if (!question) {
+                alert("请先输入问题");
+                return;
+            }
+
+            // 显示加载提示
+            $('#loading').show();
+
+            // AJAX POST 请求
+            $.ajax({
+                url: "{% url 'chat:ask' %}",
+                type: "POST",
+                data: {
+                    question: question,
+                    figure_id: figure_id,  // 发送选择的历史人物 ID
+                    csrfmiddlewaretoken: '{{ csrf_token }}'  // 确保传递 CSRF 令牌
+                },
+                success: function(response) {
+                    // 隐藏加载提示
+                    $('#loading').hide();
+
+                    if (response.answer) {
+                        // 添加用户的问题
+                        $('#conversation').append(
+                            `<div class="d-flex justify-content-end mb-2">
+                                <div class="user-message">
+                                    <strong>你：</strong> ${question}
+                                </div>
+                            </div>`
+                        );
+                        // 添加AI的回答
+                        $('#conversation').append(
+                            `<div class="d-flex justify-content-start mb-2">
+                                <div class="assistant-message">
+                                    <strong>AI：</strong> ${response.answer}
+                                </div>
+                            </div>`
+                        );
+                        // 清空输入框
+                        $('#question').val('');
+                        // 自动滚动到最底部
+                        $('#conversation').scrollTop($('#conversation')[0].scrollHeight);
+                    } else {
+                        $('#conversation').append(
+                            `<div class="text-danger"><strong>错误：</strong> ${response.error || "未知错误"}</div><hr>`
+                        );
+                    }
+                },
+                error: function(xhr) {
+                    // 隐藏加载提示
+                    $('#loading').hide();
+
+                    $('#conversation').append(
+                        `<div class="text-danger"><strong>请求出错：</strong> ${xhr.responseText}</div><hr>`
+                    );
+                }
+            });
+        });
+
+        // 处理一键清除记忆按钮点击事件
+        $('.clear-memory-btn').click(function() {
+            if (!confirm("确定要清除与该历史人物的所有聊天记录吗？")) {
+                return;
+            }
+
+            let figure_id = $(this).data('figure-id');
+
+            $.ajax({
+                url: "{% url 'chat:clear_memory' %}",
+                type: "POST",
+                data: {
+                    figure_id: figure_id,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.message) {
+                        alert(response.message);
+                        // 清除前端的聊天记录显示
+                        // 如果当前选择的历史人物被清除，则清空对话区
+                        let selectedFigureId = $('#figure').val();
+                        if (selectedFigureId == figure_id) {
+                            $('#conversation').empty();
+                        }
+                    } else {
+                        alert("记忆清除失败：" + (response.error || "未知错误"));
+                    }
+                },
+                error: function(xhr) {
+                    alert("请求出错：" + xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
