@@ -4,7 +4,7 @@ from src.LLM_Model.GPT_api_request import ChatClient
 
 class ChatActionRunner:
     def __init__(self, model="gpt-4o"):
-        self._api_key = 'sk-nTaeIVSY4P3w9dnLXQa5ar1xIKhE04dL1D6pXmG4JUabvnnG'  # API key is now a fixed, private attribute
+        self._api_key = ''  # API key is now a fixed, private attribute
         self._model = model
         self._chat_client = ChatClient(self._api_key)
         self._action = Action(self._chat_client)
