@@ -189,12 +189,12 @@ if __name__ == "__main__":
 - or contact via email: `zhaorenhuo@gmail.com`
 
 
-## Referenced Models
+## Acknowledge
 
 ### Named Entity Recognition (NER) Model
 
 We use a pretrained BERT-based NER model (`dslim/bert-large-NER`) to identify entities in text:
-
+For more details, please refer to the [hugging face](https://huggingface.co/dslim/bert-large-NER)
 ```python
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from transformers import pipeline
@@ -218,6 +218,7 @@ print(ner_results)
 ### Word2Vec Embedding Model
 
 We use the `word2vec-google-news-300` model from Gensim to obtain word embeddings and perform vector-based semantic analysis:
+For more details, please refer to the [hugging face](https://huggingface.co/fse/word2vec-google-news-300)
 
 ```python
 import gensim.downloader as api
@@ -242,7 +243,7 @@ for word, score in similar_words:
 
 
 ### We Used the LLaMA3-8B Model
-
+For more details, please refer to the [hugging face](https://huggingface.co/nvidia/Llama3-ChatQA-1.5-8B)
 ```python
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
