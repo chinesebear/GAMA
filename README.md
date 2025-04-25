@@ -10,7 +10,7 @@ GAMA: A General Anonymizing Multi-Agent System for Privacy Preservation Enhanced
 </p>
 
 <p align="center">
-<img src="./doc/png/fig.gama.png" width=60% /> <br>
+<img src="./doc/png/fig.gama.png" width=100% /> <br>
 Figure 1: The structure of the proposed framework (GAMA).
 </p>
 
