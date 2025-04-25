@@ -1,4 +1,18 @@
-# GAMA: A General Anonymizing Multi-Agent System for Privacy Preservation Enhanced by Domain Rules and Disproof Method
+<h1 align="center">
+GAMA: A General Anonymizing Multi-Agent System for Privacy Preservation Enhanced by Domain Rules and Disproof Method
+</h1>
+<p align="center">
+<img src="https://img.shields.io/badge/OS-Ubuntu22.4-blue" />
+<img src="https://img.shields.io/badge/Python-3.8-red" />
+<img src="https://img.shields.io/badge/Build-Success-green" />
+<img src="https://img.shields.io/badge/License-BSD-blue" />
+<img src="https://img.shields.io/badge/Release-0.1-blue" />
+</p>
+
+<p align="center">
+<img src="./doc/png/fig.gama.png" width=60% /> <br>
+Figure 1: The structure of the proposed framework (GAMA).
+</p>
 
 ## Paper Access  
 The paper is currently under embargo and not publicly available.
@@ -7,7 +21,7 @@ The paper is currently under embargo and not publicly available.
 We built a Django-based visualization interface for GAMA, featuring historical dialogue interactions. Users can engage with our "Super Thinking" reasoning engine through this interface.  
 > ⚠️ The privacy-preserving module is not yet supported in the visual interface.
 
-![mahua](img.png)
+![mahua](./doc/png/img.png)
 
 
 ## Environment Setup
