@@ -11,26 +11,26 @@ GAMA: A General Anonymizing Multi-Agent System for Privacy Preservation Enhanced
 
 <p align="center">
 <img src="./doc/png/fig.gama.png" width=100% /> <br>
-Figure 1: The structure of the proposed framework (GAMA).
+<b>Figure 1</b>: The structure of the proposed framework (GAMA).
 </p>
 
-## Paper Access  
-The paper is currently under embargo and not publicly available.
 
-## Visualization Interface  
-We built a Django-based visualization interface for GAMA, featuring historical dialogue interactions. Users can engage with our "Super Thinking" reasoning engine through this interface.  
-> ⚠️ The privacy-preserving module is not yet supported in the visual interface.
+## Case Study: Email Processing
 
-![mahua](./doc/png/img.png)
+<p align="center">
+<img src="./doc/png/fig.email.png" width=100% /> <br>
+<b>Figure 3</b>: GAMA for Email Processing.
+</p>
 
+> To further evaluate GAMA, we employed it in the email processing. As illustrated in Figure 3, GAMA is required to reply to an email, yet the original message contains private information such as names, phone numbers, organizations, and so on. GAMA initially identifies the private data in the email through the PNER view and PIA view. The primary distinction between the two views is the presence of four named entities: Massachusetts Legislature, John Coffin Talbot, Scott Weiland, and Richard Hawley. The first is a well-known parliamentary organization, while the last three are famous politicians and singer-songwriters. Based on the named entity classification, PNER determines that these are private data. Conversely, PIA owns the common sense of human society, and deems them to be public and non-privacy. Following the fusion of the two views, GAMA also anonymizes the names of famous individuals randomly in order to safeguard contextual privacy. Furthermore, the anonymizing agent employed creates a privacy box for the purpose of mapping placeholders and privacy-named entities. In the public space, GAMA incorporates logic enhancement and knowledge augmentation. For knowledge enhancement, GAMA's DRKE leverages domain rules from the political and artistic fields to extract and complete knowledge about political figures and creative musicians, including their names and experiences, from emails. On the logic enhancement side, GAMA's DLE employs a Disproof approach for logical reasoning. For instance, in the second question, it progressively narrows down the location of the Massachusetts legislature, first General Court, second Boston and final Beacon Hill. In the public space, GAMA generates the reply email with placeholders. In the private space, the placeholders are then restored by the nomination agent in the private space based on the privacy box. And as the figure shown, the final reply email is present without any ammonized placeholders. The case study is further evidence that GAMA's AMPP mechanism is effective in identifying privacy, anonymizing it, and finally safeguarding the privacy in the original text.
 
 ## Environment Setup
 
 ### 1. Create a Conda Environment
 
 ```bash
-conda create -n myenv python=3.8
-conda activate myenv
+conda create -n gama python=3.8
+conda activate gama
 ```
 ### 2. Configure Conda Channels (conda-forge and pytorch)
 
@@ -185,16 +185,19 @@ if __name__ == "__main__":
 ```
 ## Dataset Access
 
-### Access to Public Datasets
+### Access to Public Question-answering Datasets
 
 **Trivia Creative Writing**  
 - [Link](https://github.com/MikeWangWZHL/Solo-Performance-Prompting/tree/main/data/trivia_creative_writing)  
 - or contact via email: `zhaorenhuo@gmail.com`
 
+> The task tests LLM's ability to retrieve and integrate diverse in-formation from their internal knowledge. In this task, a model must craft a coherent story around a given topic while incorporating answers to N trivia questions. We evaluate the models with N set to 5 and 10, where a higher N requires more extensive domain knowledge. Our benchmark includes 100 instances for each N, totaling 1,000 trivia questions.
+
 **Logic Grid Puzzle**  
 - [Link](https://github.com/MikeWangWZHL/Solo-Performance-Prompting/tree/main/data/logic_grid_puzzle)  
 - or contact via email: `zhaorenhuo@gmail.com`
 
+> The task is from the Bigbench dataset (Srivastava et al., 2023), which comprises 200 instances. Each instance describes a logic puzzle involving 2 to 5 houses, each occupied by a person with specific characteristics, such as playing the piano. The goal is to answer questions about house numbers based on given clues, re-quiring multi-step reasoning and the selection of relevant information. For evaluation, we measure the accuracy of the predicted house numbers by comparing them to the ground truth targets provided by the dataset.
 
 ### Access to Privacy-Preserving Datasets
 
@@ -202,6 +205,13 @@ if __name__ == "__main__":
 - Available via Hugging Face (not yet publicly released)  
 - or contact via email: `zhaorenhuo@gmail.com`
 
+**Knowledge Privacy Preservation (KPP)**
+
+> We designed KPP for the knowledge-typed task with private data. We utilize KPP to evaluate the ability of processing the tasks under privacy preservation. First, the models for evaluation must identify and anonymize private data embedded in questions. Subsequently, the models answer 5 knowledge-typed questions inspired by HotpotQA, crafting coherent responses in the form of stories or letters. KPP includes 100 instances, each with 5 questions, totaling 500 knowledge-typed questions. 
+
+**Logic Privacy Preservation (LPP)**
+
+> We designed LPP for evaluates the ability of processing de-identified text and performing logical reasoning. The models for evaluation identify and anonymize private data embedded in paragraphs and questions. The anonymized questions are answered by the models. The Boolean logical reasoning questions of LPP are derived from BoolQ. Each instance involves True/False questions based on paragraph content. And each question requires logical inference and text comprehension. LPP includes 150 instances with Boolean questions. 
 
 ## Acknowledge
 
@@ -317,6 +327,15 @@ For more details, please refer to the [OpenAI website](https://openai.com/api/).
 ### We Evaluated the LLaMA-70B Model
 
 For details, please refer to the [Ollama website](https://ollama.com/).
+
+## Visualization Interface  
+We built a Django-based visualization interface for GAMA, featuring historical dialogue interactions. Users can engage with our "Super Thinking" reasoning engine through this interface.  
+> ⚠️ The privacy-preserving in Visualization Interface is coming...
+
+<p align="center">
+<img src="./doc/png/fig.ui.png" width=100% /> <br>
+<b>Figure 2</b>: GAMA Visual UI.
+</p>
 
 
 
